@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2E1F2E">
+<title>Clic'Immo Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5EFE6;--surface:#fff;--aug:#2E1F2E;--aug2:#4A3350;
+  --terra:#C4614A;--terra2:#E07A60;--cr2:#EAE0D2;--cr3:#DDD3C5;
+  --muted:#8A7A8A;--text:#1E121E;--ok:#4A7A59;--warn:#C4914A;--info:#4285F4;
+  --r:14px;--safe-b:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+.sb{background:var(--aug);height:env(safe-area-inset-top,0px);position:fixed;top:0;left:0;right:0;z-index:200}
+.topbar{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;background:var(--aug);z-index:199;padding:12px 16px 10px;display:flex;align-items:center;gap:8px}
+.tlogo{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:#F5EFE6;letter-spacing:.02em}
+.tlogo em{color:var(--terra2);font-style:normal}
+.tbadge{font-size:.58rem;background:var(--terra);color:#fff;padding:2px 7px;border-radius:6px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.tsub{font-size:.62rem;color:rgba(245,239,230,.4);letter-spacing:.09em;text-transform:uppercase;margin-left:auto}
+
+.scroll-body{margin-top:calc(env(safe-area-inset-top,0px) + 48px);padding-bottom:calc(68px + var(--safe-b));flex:1;overflow-y:auto}
+.screen{display:none;padding:13px 13px 24px}
+.screen.active{display:block}
+
+/* ── TYPE ── */
+.slabel{font-size:.62rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.slabel:first-child{margin-top:2px}
+.card{background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:0 1px 8px rgba(46,31,46,.07);margin-bottom:9px}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--aug);margin-bottom:10px}
+
+/* ── FORM ── */
+.field{margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:.66rem;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1.5px solid var(--cr2);border-radius:9px;padding:10px 12px;font-family:'Jost',sans-serif;font-size:.87rem;color:var(--text);outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--terra)}
+.field textarea{resize:none;min-height:58px;line-height:1.55}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238A7A8A' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* ── BUTTONS ── */
+.btn{width:100%;border:none;border-radius:11px;padding:13px;font-family:'Jost',sans-serif;font-size:.88rem;font-weight:600;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .14s;-webkit-appearance:none}
+.btn-p{background:var(--terra);color:#fff}
+.btn-p:active{background:#A8503C;transform:scale(.98)}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-ok:active{background:#3a6347}
+.btn-s{background:transparent;color:var(--aug);border:1.5px solid var(--cr2);margin-top:7px}
+.btn-s:active{border-color:var(--aug)}
+.btn-sm{padding:9px 13px;font-size:.79rem;border-radius:9px}
+.btn-del{background:transparent;color:var(--terra);border:1.5px solid rgba(196,97,74,.25);margin-top:7px}
+
+/* ── CHIPS ── */
+.chips{display:flex;gap:5px;overflow-x:auto;padding:2px 0 5px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;background:var(--surface);border:1.5px solid var(--cr2);border-radius:18px;padding:6px 12px;font-family:'Jost',sans-serif;font-size:.74rem;font-weight:500;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;white-space:nowrap;transition:all .14s}
+.chip .cday{font-size:.8rem;font-weight:600;color:var(--text)}
+.chip.sel{background:var(--aug);border-color:var(--aug);color:rgba(245,239,230,.65)}
+.chip.sel .cday{color:#F5EFE6}
+.chip.sent{opacity:.45}
+
+/* ── STATUS BADGES ── */
+.status{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;font-size:.65rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.s-actif{background:rgba(196,97,74,.12);color:var(--terra)}
+.s-visite{background:rgba(66,133,244,.12);color:var(--info)}
+.s-nego{background:rgba(196,145,74,.15);color:var(--warn)}
+.s-compromis{background:rgba(74,122,89,.15);color:var(--ok)}
+.s-offre{background:rgba(74,122,89,.2);color:var(--ok)}
+.s-expire{background:rgba(138,122,138,.15);color:var(--muted)}
+.s-retire{background:#f0e8e8;color:#a05050}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;background:var(--cr2);border-radius:10px;padding:3px;margin-bottom:12px}
+.tab{flex:1;padding:7px;font-family:'Jost',sans-serif;font-size:.76rem;font-weight:500;color:var(--muted);border:none;background:transparent;border-radius:8px;cursor:pointer;transition:all .14s}
+.tab.active{background:var(--surface);color:var(--aug);font-weight:600;box-shadow:0 1px 4px rgba(46,31,46,.1)}
+
+/* ── MAIL PREVIEW ── */
+.msubj{background:var(--cr2);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:.77rem}
+.msubj strong{display:block;font-size:.59rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.mbody{background:var(--bg);border:1.5px solid var(--cr2);border-radius:9px;padding:12px;font-size:.8rem;line-height:1.75;white-space:pre-wrap;color:var(--text);font-weight:300;max-height:300px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.wa-body{background:#e7fdd8;border:1.5px solid #b7e4a0;border-radius:9px;padding:12px;font-size:.8rem;line-height:1.72;white-space:pre-wrap;color:#1a3a10;max-height:240px;overflow-y:auto}
+.intent-box{border-left:3px solid var(--terra);padding:7px 11px;background:rgba(196,97,74,.06);border-radius:0 7px 7px 0;font-size:.75rem;color:var(--muted);line-height:1.6;margin-bottom:11px}
+.intent-box strong{color:var(--terra)}
+
+/* ── ACTION GRID ── */
+.agrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
+.abtn{background:var(--surface);border:1.5px solid var(--cr2);border-radius:9px;padding:10px 5px;font-family:'Jost',sans-serif;font-size:.68rem;font-weight:500;color:var(--aug);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .14s;-webkit-appearance:none;line-height:1.2;text-align:center}
+.abtn:active{background:var(--cr2)}
+.abtn.wa{background:#25D366;border-color:#25D366;color:#fff}
+.abtn.dark{background:var(--aug);border-color:var(--aug);color:#F5EFE6}
+.abtn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.abtn.gcal{background:#4285F4;border-color:#4285F4;color:#fff}
+
+/* ── CAL CHIPS ── */
+.cal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.ccal{background:var(--surface);border:1.5px solid var(--cr2);border-radius:8px;padding:8px 5px;font-family:'Jost',sans-serif;font-size:.66rem;font-weight:500;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .14s;-webkit-appearance:none;text-align:center}
+.ccal .cj{font-size:.78rem;font-weight:600;color:var(--aug)}
+.ccal.done{background:rgba(74,122,89,.08);border-color:var(--ok)}
+.ccal.done .cj{color:var(--ok)}
+
+/* ── DASHBOARD ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:13px}
+.sbox{background:var(--surface);border-radius:10px;padding:11px 8px;text-align:center;box-shadow:0 1px 5px rgba(46,31,46,.06)}
+.sn{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--aug);line-height:1}
+.sl{font-size:.58rem;color:var(--muted);margin-top:2px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+
+/* ── DOSSIER CARD ── */
+.dcard{background:var(--surface);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;box-shadow:0 1px 6px rgba(46,31,46,.06);cursor:pointer;border:none;width:100%;text-align:left;font-family:'Jost',sans-serif;display:block;transition:box-shadow .14s}
+.dcard:active{box-shadow:0 3px 14px rgba(46,31,46,.14)}
+.dtop{display:flex;align-items:flex-start;gap:9px}
+.ddot{width:8px;height:8px;border-radius:50%;background:var(--terra);flex-shrink:0;margin-top:5px}
+.ddot.warn{background:var(--warn)}.ddot.ok{background:var(--ok)}.ddot.muted{background:var(--cr3)}
+.dinfo{flex:1;min-width:0}
+.dname{font-size:.9rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dmeta{font-size:.7rem;color:var(--muted);margin-top:2px}
+.dpill{font-size:.7rem;font-weight:600;color:var(--terra);background:rgba(196,97,74,.1);padding:3px 8px;border-radius:7px;white-space:nowrap;flex-shrink:0}
+.dpill.warn{color:var(--warn);background:rgba(196,145,74,.1)}
+.dpill.ok{color:var(--ok);background:rgba(74,122,89,.1)}
+.dpill.muted{color:var(--muted);background:var(--cr2)}
+.pbar{height:3px;background:var(--cr2);border-radius:2px;margin-top:9px;overflow:hidden}
+.pfill{height:100%;background:var(--terra);border-radius:2px}
+.pfill.warn{background:var(--warn)}.pfill.ok{background:var(--ok)}
+
+/* ── VISITE LOG ── */
+.vlog{border:1.5px solid var(--cr2);border-radius:9px;overflow:hidden;margin-top:8px}
+.vlog-item{padding:10px 13px;border-bottom:1px solid var(--cr2);display:flex;gap:10px;align-items:flex-start}
+.vlog-item:last-child{border-bottom:none}
+.vdate{font-size:.7rem;font-weight:600;color:var(--muted);white-space:nowrap;margin-top:1px;min-width:52px}
+.vbody{flex:1;min-width:0}
+.vacq{font-size:.82rem;font-weight:500;color:var(--text)}
+.vretour{font-size:.75rem;color:var(--muted);margin-top:2px;line-height:1.5}
+.vretour-tag{display:inline-block;background:var(--cr2);color:var(--muted);font-size:.63rem;font-weight:600;padding:2px 7px;border-radius:5px;margin-right:3px;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.vretour-tag.prix{background:rgba(196,97,74,.12);color:var(--terra)}
+.vretour-tag.ok{background:rgba(74,122,89,.12);color:var(--ok)}
+
+/* ── PRIX HISTORY ── */
+.prix-hist{display:flex;align-items:center;gap:0;margin-top:6px;overflow-x:auto;padding:4px 0}
+.ph-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
+.ph-val{font-size:.75rem;font-weight:600;color:var(--aug)}
+.ph-date{font-size:.62rem;color:var(--muted)}
+.ph-arrow{color:var(--terra);font-size:.9rem;margin:0 4px;flex-shrink:0;align-self:center}
+
+/* ── RAPPORT ── */
+.rapport-section{margin-bottom:18px}
+.rapport-h{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--aug);border-bottom:1.5px solid var(--cr2);padding-bottom:6px;margin-bottom:10px}
+
+/* ── ACQUÉREUR ── */
+.acq-card{background:var(--surface);border-radius:10px;padding:12px 13px;margin-bottom:7px;border:1.5px solid var(--cr2)}
+.acq-name{font-size:.88rem;font-weight:500}
+.acq-crit{font-size:.75rem;color:var(--muted);margin-top:4px;line-height:1.6}
+.match-pill{display:inline-block;background:rgba(74,122,89,.12);color:var(--ok);font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:6px;margin-left:6px}
+
+/* ── LINK PILL ── */
+.lpill{display:flex;align-items:center;gap:7px;background:var(--cr2);border-radius:7px;padding:7px 11px;font-size:.76rem;color:var(--aug);text-decoration:none;margin-top:7px;overflow:hidden}
+.lpill span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+
+/* ── BACK ROW ── */
+.back{display:flex;align-items:center;gap:6px;margin-bottom:13px;cursor:pointer;color:var(--terra);font-size:.79rem;font-weight:500;border:none;background:none;font-family:'Jost',sans-serif;padding:0}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(78px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(14px);background:var(--aug);color:#F5EFE6;font-size:.79rem;font-weight:500;padding:9px 18px;border-radius:16px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:300}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--cr2);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:var(--safe-b);z-index:199}
+.ni{display:flex;flex-direction:column;align-items:center;padding:8px 0 7px;gap:2px;font-size:.57rem;font-weight:500;color:var(--muted);cursor:pointer;letter-spacing:.05em;text-transform:uppercase;border:none;background:none;font-family:'Jost',sans-serif;transition:color .14s}
+.ni.active{color:var(--terra)}
+.ni.active svg{stroke:var(--terra)}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(46,31,46,.5);z-index:250;display:none;align-items:flex-end}
+.overlay.open{display:flex}
+.sheet{background:var(--surface);border-radius:18px 18px 0 0;padding:18px 15px calc(18px + var(--safe-b));width:100%;max-height:88vh;overflow-y:auto;animation:sup .22s ease}
+@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:34px;height:4px;background:var(--cr2);border-radius:2px;margin:0 auto 14px}
+.sheet-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--aug);margin-bottom:13px}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 18px;color:var(--muted);font-size:.85rem;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="sb"></div>
+<header class="topbar">
+  <div class="tlogo">Clic<em>'</em>Immo</div>
+  <div class="tbadge">Pro</div>
+  <div class="tsub">Allma Grivel</div>
+</header>
+
+<main class="scroll-body">
+
+<!-- ════ DASHBOARD ════ -->
+<div class="screen active" id="screen-dash">
+  <div id="dash-stats"></div>
+  <div class="slabel">Dossiers actifs</div>
+  <div id="dash-list"></div>
+  <button class="btn btn-p" onclick="showScreen('new')" style="margin-top:4px">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Nouveau dossier
+  </button>
+</div>
+
+<!-- ════ NOUVEAU DOSSIER ════ -->
+<div class="screen" id="screen-new">
+  <div class="slabel">Identité du bien</div>
+  <div class="card">
+    <div class="field"><label>Nom(s) propriétaire(s) *</label><input id="n-nom" type="text" placeholder="Ex : M. et Mme Dupont" autocomplete="off"></div>
+    <div class="frow">
+      <div class="field"><label>Ville *</label><input id="n-ville" type="text" placeholder="Meillerie" autocomplete="off"></div>
+      <div class="field"><label>Type de bien</label><input id="n-type" type="text" placeholder="Maison 230m²" autocomplete="off"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Prix affiché</label><input id="n-prix" type="text" placeholder="695 000 €" autocomplete="off"></div>
+      <div class="field"><label>DPE</label>
+        <select id="n-dpe"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="slabel">Contacts vendeur</div>
+  <div class="card">
+    <div class="field"><label>Email</label><input id="n-email" type="email" placeholder="vendeur@email.com" inputmode="email" autocomplete="off"></div>
+    <div class="field"><label>Téléphone</label><input id="n-tel" type="tel" placeholder="06 XX XX XX XX" inputmode="tel" autocomplete="off"></div>
+    <div class="field"><label>Lien annonce</label><input id="n-lien" type="url" placeholder="https://efficity.com/..." inputmode="url" autocomplete="off"></div>
+  </div>
+
+  <div class="slabel">Commercialisation</div>
+  <div class="card">
+    <div class="frow">
+      <div class="field"><label>Date mise en ligne *</label><input id="n-date" type="date"></div>
+      <div class="field"><label>Vues initiales</label><input id="n-vues" type="number" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label>Prix recommandé</label><input id="n-prixreco" type="text" placeholder="Ex : 650 000 €" autocomplete="off"></div>
+    <div class="field"><label>Objectif vendeur</label>
+      <select id="n-objectif">
+        <option value="">— Sélectionner —</option>
+        <option>Vente rapide (< 3 mois)</option>
+        <option>Prix maximum, délai flexible</option>
+        <option>Achat simultané lié</option>
+        <option>Succession / contrainte légale</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes internes</label><textarea id="n-notes" placeholder="Motivations, points de vigilance, contexte..."></textarea></div>
+  </div>
+
+  <button class="btn btn-p" onclick="sauvegarder()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Enregistrer le dossier
+  </button>
+  <button class="btn btn-s" onclick="showScreen('dash')">Annuler</button>
+</div>
+
+<!-- ════ FICHE DOSSIER ════ -->
+<div class="screen" id="screen-fiche">
+  <button class="back" onclick="showScreen('dash')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Dashboard
+  </button>
+  <div id="fiche-content"></div>
+</div>
+
+<!-- ════ COMPOSER ════ -->
+<div class="screen" id="screen-compose">
+  <button class="back" id="compose-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Retour dossier
+  </button>
+  <div class="card" id="compose-info"></div>
+  <div class="slabel">Données actualisées</div>
+  <div class="card">
+    <div class="frow">
+      <div class="field"><label>Vues annonce</label><input id="c-vues" type="number" inputmode="numeric" placeholder="Ex : 142"></div>
+      <div class="field"><label>Jours en ligne</label><input id="c-jours" type="number" readonly style="background:var(--cr2);color:var(--muted)"></div>
+    </div>
+    <div class="field"><label>Prix recommandé</label><input id="c-reco" type="text" placeholder="Ex : 650 000 €" autocomplete="off"></div>
+    <div class="field"><label>Créneau proposé</label><input id="c-creneau" type="text" placeholder="Ex : jeudi matin" autocomplete="off"></div>
+  </div>
+  <div class="slabel">Étape de suivi</div>
+  <div class="chips" id="compose-chips"></div>
+  <button class="btn btn-p" onclick="generer()" style="margin-top:13px">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Générer mail + WhatsApp
+  </button>
+</div>
+
+<!-- ════ APERÇU ════ -->
+<div class="screen" id="screen-preview">
+  <button class="back" id="preview-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Modifier
+  </button>
+  <div class="card">
+    <div class="intent-box" id="pv-intent"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('mail',this)">📧 Mail</button>
+      <button class="tab" onclick="switchTab('wa',this)">💬 WhatsApp</button>
+    </div>
+    <div id="tab-mail">
+      <div class="msubj" id="pv-subj"></div>
+      <div class="mbody" id="pv-body"></div>
+      <div class="agrid">
+        <button class="abtn" id="btn-cmail" onclick="copier('mail')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copier
+        </button>
+        <button class="abtn" onclick="partager('mail')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Partager
+        </button>
+        <button class="abtn dark" onclick="ouvrirMail()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Mail
+        </button>
+      </div>
+    </div>
+    <div id="tab-wa" style="display:none">
+      <div class="wa-body" id="pv-wa"></div>
+      <div class="agrid">
+        <button class="abtn" id="btn-cwa" onclick="copier('wa')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copier
+        </button>
+        <button class="abtn" onclick="partager('wa')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Partager
+        </button>
+        <button class="abtn wa" onclick="ouvrirWA()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="slabel">Planifier dans Google Agenda</div>
+  <div class="card">
+    <p style="font-size:.75rem;color:var(--muted);line-height:1.6;margin-bottom:8px">Ajoute chaque étape directement dans ton agenda :</p>
+    <div class="cal-grid" id="pv-cal"></div>
+  </div>
+</div>
+
+<!-- ════ ACQUÉREURS ════ -->
+<div class="screen" id="screen-acq">
+  <div class="slabel">Acquéreurs actifs</div>
+  <div id="acq-list"></div>
+  <button class="btn btn-p" onclick="openSheet('sheet-acq')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Ajouter un acquéreur
+  </button>
+</div>
+
+</main>
+
+<!-- ════ BOTTOM NAV ════ -->
+<nav class="bnav">
+  <button class="ni active" id="ni-dash" onclick="showScreen('dash')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </button>
+  <button class="ni" id="ni-new" onclick="showScreen('new')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Nouveau
+  </button>
+  <button class="ni" id="ni-compose" onclick="goCompose()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Composer
+  </button>
+  <button class="ni" id="ni-acq" onclick="showScreen('acq')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    Acquéreurs
+  </button>
+  <button class="ni" id="ni-preview" onclick="showScreen('preview')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Aperçu
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════ MODALS ════ -->
+<!-- Ajouter visite -->
+<div class="overlay" id="sheet-visite">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Enregistrer une visite</div>
+    <div class="field"><label>Date de visite</label><input id="v-date" type="date"></div>
+    <div class="field"><label>Profil acquéreur</label><input id="v-acq" type="text" placeholder="Ex : Couple, primo-accédants, Lyon" autocomplete="off"></div>
+    <div class="field"><label>Retour principal</label>
+      <select id="v-retour">
+        <option value="">— Sélectionner —</option>
+        <option value="prix">Prix trop élevé</option>
+        <option value="surface">Surface insuffisante</option>
+        <option value="travaux">Travaux importants</option>
+        <option value="localisation">Localisation / accès</option>
+        <option value="dpe">DPE / performance énergétique</option>
+        <option value="positif">Retour positif — en réflexion</option>
+        <option value="offre">Offre en préparation</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="field"><label>Commentaire</label><textarea id="v-comment" placeholder="Détails du retour acquéreur..."></textarea></div>
+    <button class="btn btn-p" onclick="saveVisite()">Enregistrer la visite</button>
+    <button class="btn btn-s" onclick="closeSheet('sheet-visite')">Annuler</button>
+  </div>
+</div>
+
+<!-- Modifier prix -->
+<div class="overlay" id="sheet-prix">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Mettre à jour le prix</div>
+    <div class="field"><label>Nouveau prix affiché</label><input id="p-nouveau" type="text" placeholder="Ex : 650 000 €" autocomplete="off"></div>
+    <div class="field"><label>Date de modification</label><input id="p-date" type="date"></div>
+    <div class="field"><label>Contexte (optionnel)</label><input id="p-contexte" type="text" placeholder="Ex : Accord vendeur après bilan J+45" autocomplete="off"></div>
+    <button class="btn btn-p" onclick="savePrix()">Enregistrer la baisse</button>
+    <button class="btn btn-s" onclick="closeSheet('sheet-prix')">Annuler</button>
+  </div>
+</div>
+
+<!-- Modifier statut -->
+<div class="overlay" id="sheet-statut">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Changer le statut</div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="statut-btns"></div>
+    <button class="btn btn-s" onclick="closeSheet('sheet-statut')">Annuler</button>
+  </div>
+</div>
+
+<!-- Ajouter acquéreur -->
+<div class="overlay" id="sheet-acq">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nouvel acquéreur</div>
+    <div class="field"><label>Nom / contact</label><input id="a-nom" type="text" placeholder="Ex : Famille Martin" autocomplete="off"></div>
+    <div class="field"><label>Téléphone</label><input id="a-tel" type="tel" inputmode="tel" placeholder="06 XX XX XX XX" autocomplete="off"></div>
+    <div class="field"><label>Email</label><input id="a-email" type="email" inputmode="email" placeholder="martin@email.com" autocomplete="off"></div>
+    <div class="frow">
+      <div class="field"><label>Budget max</label><input id="a-budget" type="text" placeholder="350 000 €" autocomplete="off"></div>
+      <div class="field"><label>Surface min</label><input id="a-surface" type="text" placeholder="Ex : 100m²" autocomplete="off"></div>
+    </div>
+    <div class="field"><label>Secteurs souhaités</label><input id="a-secteur" type="text" placeholder="Ex : Plateau de Gavot" autocomplete="off"></div>
+    <div class="field"><label>Type recherché</label><input id="a-type" type="text" placeholder="Ex : T3/T4, maison avec jardin" autocomplete="off"></div>
+    <div class="field"><label>Notes</label><textarea id="a-notes" placeholder="Financement, délai, contraintes..."></textarea></div>
+    <button class="btn btn-p" onclick="saveAcq()">Enregistrer</button>
+    <button class="btn btn-s" onclick="closeSheet('sheet-acq')">Annuler</button>
+  </div>
+</div>
+
+<!-- Rapport PDF -->
+<div class="overlay" id="sheet-rapport">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Rapport vendeur</div>
+    <div id="rapport-content" style="font-size:.82rem;line-height:1.75;color:var(--text)"></div>
+    <button class="btn btn-p" style="margin-top:14px" onclick="imprimerRapport()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimer / Enregistrer PDF
+    </button>
+    <button class="btn btn-s" onclick="closeSheet('sheet-rapport')">Fermer</button>
+  </div>
+</div>
+
+<script>
+// ════ DONNÉES ÉTAPES ════════════════════════════════════════════════════════
+const ETAPES=[
+  {jour:'J+2',jours:2,label:'Observation',
+   intent:'Rassurer le vendeur, poser le rythme du suivi professionnel sans aborder le prix.',
+   objet:d=>`Votre bien à ${d.ville} – Premiers retours après mise en ligne`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nJe me permets de vous contacter deux jours après la mise en ligne de votre annonce afin de vous donner un premier retour de terrain.\n\nVotre bien bénéficie d'une bonne visibilité : l'annonce est diffusée sur les portails prévus et les statistiques de consultation démarrent normalement pour cette période.\n\nÀ ce stade, je n'ai pas encore reçu de demande de visite, ce qui est tout à fait habituel sur ce délai. Les premiers contacts sérieux émergent généralement en fin de première semaine.\n\nJe continue à suivre les statistiques avec attention et reviendrai vers vous dès que j'aurai des éléments concrets à vous communiquer.\n\nBien cordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc} 👋\n\nPoint J+2 pour votre bien à ${d.ville}.\n\nL'annonce est bien diffusée et visible. Pas encore de contact acquéreur — c'est tout à fait normal à ce stade.\n\nJe vous tiens informé(e) dès les premiers retours.\n\nAllma – Clic'Immo`},
+  {jour:'J+7',jours:7,label:'Bilan 1 sem.',
+   intent:'Livrer un bilan chiffré honnête, ouvrir la réflexion prix sans le nommer.',
+   objet:d=>`Votre bien à ${d.ville} – Bilan après 7 jours`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nUne semaine s'est écoulée depuis la mise en ligne et je souhaitais vous adresser un bilan complet.\n\nVisibilité : L'annonce a été consultée ${d.vues||'[X]'} fois sur les principaux portails.\nContacts reçus : aucune demande de visite qualifiée à ce jour.\n\nCe résultat mérite qu'on s'interroge ensemble sur le positionnement du bien sur le marché actuel.\n\nJe souhaiterais vous proposer un échange téléphonique de quelques minutes${d.creneau?' — seriez-vous disponible '+d.creneau+' ?':' cette semaine.'}\n\nBien cordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\nBilan 7 jours – ${d.ville} :\n📊 ${d.vues||'—'} vues · 0 visite\n\nC'est le bon moment pour faire un point sur le positionnement.${d.creneau?'\n\nDispo '+d.creneau+' ?':'\n\nQuel créneau vous convient ?'}\n\nAllma – Clic'Immo`},
+  {jour:'J+10',jours:10,label:'Relance',
+   intent:'Nommer le signal marché clairement si pas de réponse à J+7.',
+   objet:d=>`Votre bien à ${d.ville} – Quelques points à vous partager`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nJe me permets de revenir vers vous après mon message de la semaine dernière.\n\nLa situation est restée inchangée : votre annonce est active et visible, mais aucun acquéreur ne s'est encore manifesté.\n\n${d.jours||10} jours sans contact est un signal que le marché nous envoie. Les biens qui ne génèrent pas de visite dans les deux premières semaines nécessitent souvent un ajustement du prix de présentation. Ce n'est pas une remise en cause de la valeur de votre bien — c'est la réalité du marché local.\n\nJe reste disponible pour en discuter à votre convenance.\n\nCordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\nJe reviens vers vous — ${d.jours||10} jours en ligne à ${d.ville}, toujours 0 contact acquéreur.\n\nC'est un signal marché qu'il faut regarder ensemble. On en parle ? 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+15',jours:15,label:'Proposition',
+   intent:'Formuler une recommandation chiffrée, appuyée sur des comparables.',
+   objet:d=>`Votre bien à ${d.ville} – Ma recommandation après 15 jours`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nDeux semaines se sont écoulées. Il est temps de vous adresser un retour complet.\n\nBilan à J+15 :\n– Consultations : ${d.vues||'—'} vues\n– Visites : ${d.visites||0}\n– Offres : 0\n\nSur la base des ventes comparables récentes dans notre secteur, je vous soumets formellement une recommandation : envisager une révision du prix${d.prix?' de '+d.prix:''}${d.reco?' à environ '+d.reco:''}.\n\nUn bien au juste prix génère en moyenne 2 à 3× plus de visites dans les jours suivant sa réévaluation.\n\nDans l'attente de votre retour,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\nJ+15 – ${d.ville} :\n👁 ${d.vues||'—'} vues · ${d.visites||0} visite(s) · 0 offre\n\nJe vous recommande une révision du prix${d.reco?' vers '+d.reco:''}. 2-3× plus de visites à la clé 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+25',jours:25,label:'Urgence',
+   intent:'La technique des deux options — le vendeur choisit en connaissance de cause.',
+   objet:d=>`Votre bien à ${d.ville} – Presque un mois sans acquéreur`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nVotre bien est en vente depuis près de quatre semaines. Certaines tendances méritent votre attention.\n\nSur notre marché, la fenêtre d'attractivité maximale se situe dans les deux premières semaines. Au-delà, les acquéreurs perçoivent un bien comme « qui reste » et deviennent plus exigeants.\n\nDeux scénarios s'offrent à vous :\n\n1. Ajuster le prix → retrouver une dynamique de visites.\n2. Maintenir le prix actuel → durée de commercialisation plus longue.\n\nC'est votre choix. Un appel de 15 minutes suffit pour décider ensemble.\n\nCordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\n4 semaines à ${d.ville} — 0 contact acquéreur.\n\n2 options :\n✅ Baisser le prix → visites rapides\n⏳ Maintenir → délai plus long\n\nVotre choix — mais je vous donne les éléments pour le faire en clarté. 15 min ? 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+30',jours:30,label:'Bilan 1 mois',
+   intent:'Bilan mensuel complet — recommandation nette, suite du mandat.',
+   objet:d=>`Votre bien à ${d.ville} – Bilan 1 mois`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nUn mois s'est écoulé. Je vous adresse ce bilan avec transparence.\n\nChiffres à J+30 :\n– Vues : ${d.vues||'—'}\n– Visites réalisées : ${d.visites||0}\n– Offres : 0\n\nLes biens comparables vendus ces 3 derniers mois sur notre secteur l'ont été en dessous de votre prix actuel${d.prix?' ('+d.prix+')':''}.\n\nMa recommandation : réviser le prix${d.reco?' à '+d.reco:' (à définir sur comparables)'}.\n\nJe vous propose un rendez-vous cette semaine — en agence à Larringes ou par téléphone.\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\n📅 1 mois – ${d.ville}.\n${d.vues||'—'} vues · ${d.visites||0} visite(s) · 0 offre.\n\nJe recommande de réviser le prix${d.reco?' à '+d.reco:''}. Point cette semaine ? 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+38',jours:38,label:'Semaine 6',
+   intent:'Point hebdomadaire — maintien du lien, préparer la baisse formelle de J+45.',
+   objet:d=>`Votre bien à ${d.ville} – Point de semaine`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nPoint de situation hebdomadaire pour votre bien à ${d.ville}.\n\nL'annonce reste active (${d.vues||'—'} vues cumulées) mais aucune visite qualifiée n'a encore eu lieu.\n\nPassé ce délai, une révision du prix de présentation devient le levier le plus efficace pour relancer l'intérêt des acquéreurs actifs. Je souhaitais vous en informer avant notre prochain échange.\n\nBien cordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\nPoint semaine 6 – ${d.ville} :\n📊 ${d.vues||'—'} vues · toujours 0 visite\n\nLe prix de présentation est le principal levier à ce stade. Je reste dispo si vous souhaitez en parler 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+45',jours:45,label:'Baisse J+45',
+   intent:'Demande formelle de baisse à 6 semaines — chiffrage précis, ton direct.',
+   objet:d=>`Votre bien à ${d.ville} – 45 jours : il est temps d'agir`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nVotre bien est commercialisé depuis 45 jours. Je vous adresse ce bilan avec la franchise que vous méritez.\n\nSituation :\n– ${d.vues||'—'} vues cumulées\n– ${d.visites||0} visite(s) réalisée(s)\n– 0 offre reçue\n\nLe marché a rendu son verdict : le prix de présentation actuel${d.prix?' de '+d.prix:''} n'est pas en adéquation avec les attentes des acquéreurs sur notre secteur.\n\nJe vous demande formellement d'envisager une baisse de prix${d.reco?' à '+d.reco:' (à définir ensemble sur la base des comparables récents)'}.\n\nSans cette révision, la durée de commercialisation continuera à s'allonger, affaiblissant encore votre position de négociation.\n\nDans l'attente de votre retour,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\n45 jours – ${d.ville}.\n${d.vues||'—'} vues · ${d.visites||0} visite(s) · 0 offre.\n\nJe dois être franche : le prix${d.prix?' ('+d.prix+')':''} bloque la vente. Une baisse${d.reco?' vers '+d.reco:''} est nécessaire maintenant.\n\nOn en parle cette semaine ? 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+52',jours:52,label:'Semaine 8',
+   intent:'Suivi post-baisse ou maintien pression si la baisse n\'a pas encore été actée.',
+   objet:d=>`Votre bien à ${d.ville} – Point semaine 8`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nVotre point de suivi hebdomadaire.\n\nVotre bien est en commercialisation depuis près de 8 semaines.${d.vues?' L\'annonce totalise '+d.vues+' vues à ce jour.':''}\n\nSi la révision de prix a été effectuée, les prochains jours seront déterminants : les biens repositionnés bénéficient d'un regain d'attention immédiat.\n\nSi aucune modification n'a encore été apportée, je reste disponible — chaque semaine supplémentaire au même prix réduit les chances de susciter un intérêt spontané.\n\nCordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\nSemaine 8 – ${d.ville} :\n${d.vues?'📊 '+d.vues+' vues':''} · ${d.visites||0} visite(s)\n\nSi la baisse est faite → les prochains jours génèrent des contacts.\nSi pas encore → on perd de l'attractivité chaque semaine. 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+55',jours:55,label:'Baisse J+55',
+   intent:'2e demande formelle — argument algorithmique portails, urgence de la semaine.',
+   objet:d=>`Votre bien à ${d.ville} – Deuxième recommandation de révision`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nJe reviens avec une seconde recommandation formelle de révision du prix.\n\nVotre bien est en commercialisation depuis près de 8 semaines. Sur notre marché, la durée moyenne de vente d'un bien correctement positionné est de 3 à 6 semaines. Nous sommes bien au-delà.\n\nLes acquéreurs actifs consultent les mêmes portails chaque semaine. Un bien déjà vu ne regénère de l'intérêt que si une modification significative apparaît — et la modification que les portails mettent le plus en avant, c'est la baisse de prix.\n\nJe vous recommande une révision${d.reco?' à '+d.reco:''} d'ici la fin de cette semaine pour bénéficier de la remontée algorithmique des annonces modifiées.\n\nCordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\n2e recommandation formelle pour ${d.ville}.\n\nLes portails remontent automatiquement les annonces modifiées → une baisse maintenant = effet de relance immédiat.\n\nPrix recommandé :${d.reco?' '+d.reco:' à définir ensemble.'}\n\nOn valide aujourd'hui ? 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+63',jours:63,label:'Semaine 9',
+   intent:'Relance hebdo — maintenir le lien, préparer le bilan 10 semaines.',
+   objet:d=>`Votre bien à ${d.ville} – Point hebdomadaire`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nVotre point de suivi hebdomadaire.\n\nLa situation reste inchangée. Je continue à surveiller les nouvelles demandes et les évolutions du marché local.\n\nÀ noter : de nouveaux acquéreurs entrent sur le marché chaque semaine. Un repositionnement tarifaire leur signalerait que votre bien mérite une attention renouvelée.\n\nCordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\nPoint semaine 9 – ${d.ville} : situation inchangée.\n\nDe nouveaux acquéreurs arrivent chaque semaine. Un repositionnement prix leur enverrait un signal fort 👋\n\nAllma – Clic'Immo`},
+  {jour:'J+70',jours:70,label:'Bilan 10 sem.',
+   intent:'Bilan 10 semaines — ton ferme, données cumulées, question sur l\'avenir du mandat.',
+   objet:d=>`Votre bien à ${d.ville} – Bilan 10 semaines & point mandat`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nDix semaines se sont écoulées. Je vous adresse ce bilan avec une transparence totale.\n\nBilan cumulé :\n– ${d.vues||'—'} vues\n– ${d.visites||0} visite(s)\n– 0 offre\n\nCe résultat m'amène à vous poser une question directe : souhaitez-vous poursuivre dans les conditions actuelles, ou préférez-vous qu'on redéfinisse ensemble la stratégie — prix, supports, ciblage — pour redonner une vraie chance à votre bien ?\n\nJe suis disponible cette semaine pour un rendez-vous de bilan.\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\n📅 10 semaines – ${d.ville}.\n${d.vues||'—'} vues · ${d.visites||0} visite(s) · 0 offre.\n\nOn continue comme ça ou on redéfinit la stratégie ensemble ? Je vous propose un rdv cette semaine 📞\n\nAllma – Clic'Immo`},
+  {jour:'J+77',jours:77,label:'Semaine 11',
+   intent:'Signal de présence professionnelle — maintien du lien.',
+   objet:d=>`Votre bien à ${d.ville} – Suivi semaine 11`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nPoint de suivi hebdomadaire.\n\nVotre annonce reste active. Je continue à surveiller les évolutions du marché local qui pourraient impacter votre dossier.\n\nN'hésitez pas à me solliciter si vous souhaitez faire évoluer les conditions de présentation.\n\nCordialement,\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\nSemaine 11 – ${d.ville} toujours actif.\n\nJe reste disponible pour faire évoluer la stratégie ou le prix 👋\n\nAllma – Clic'Immo`},
+  {jour:'J+84',jours:84,label:'Bilan 3 mois',
+   intent:'Bilan 3 mois — révision globale, décision stratégique majeure.',
+   objet:d=>`Votre bien à ${d.ville} – Bilan 3 mois : décision stratégique`,
+   corps:d=>`Madame, Monsieur ${d.nom},\n\nTrois mois se sont écoulés. C'est un moment charnière.\n\nBilan à 3 mois :\n– ${d.vues||'—'} vues cumulées\n– ${d.visites||0} visite(s)\n– 0 offre\n\nÀ ce stade, je vous recommande une révision globale de la stratégie : prix, visuels, descriptif, ciblage. Un bien sans offre en 3 mois a besoin d'une approche renouvelée.\n\nJe vous propose un rendez-vous dédié cette semaine pour construire ensemble un nouveau plan d'action.\n\nAllma Grivel\nConseillère en immobilier – Clic'Immo\n06 XX XX XX XX`,
+   wa:d=>`Bonjour ${d.nc},\n\n📅 3 mois – ${d.ville}.\n${d.vues||'—'} vues · ${d.visites||0} visite(s) · 0 offre.\n\nOn repart sur de nouvelles bases : prix, visuels, stratégie. Rdv dédié cette semaine ? 💪\n\nAllma – Clic'Immo`}
+];
+
+const STATUTS=[
+  {key:'actif',label:'Actif — en commercialisation',cls:'s-actif'},
+  {key:'visite',label:'Visite(s) en cours',cls:'s-visite'},
+  {key:'nego',label:'Négociation en cours',cls:'s-nego'},
+  {key:'compromis',label:'Sous compromis',cls:'s-compromis'},
+  {key:'offre',label:'Offre reçue 🎉',cls:'s-offre'},
+  {key:'expire',label:'Mandat expiré',cls:'s-expire'},
+  {key:'retire',label:'Bien retiré',cls:'s-retire'}
+];
+
+// ════ STATE ════════════════════════════════════════════════════════════════
+let DOS=JSON.parse(localStorage.getItem('ci_pro_v1')||'[]');
+let ACQ=JSON.parse(localStorage.getItem('ci_acq_v1')||'[]');
+let CID=null, EI=0, CM={sujet:'',corps:'',wa:''}, CALDONE={};
+
+function saveD(){localStorage.setItem('ci_pro_v1',JSON.stringify(DOS))}
+function saveA(){localStorage.setItem('ci_acq_v1',JSON.stringify(ACQ))}
+
+// ════ SCREENS ══════════════════════════════════════════════════════════════
+function showScreen(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  const ni=document.getElementById('ni-'+n);
+  if(ni)ni.classList.add('active');
+  window.scrollTo(0,0);
+  if(n==='dash')renderDash();
+  if(n==='acq')renderAcq();
+}
+
+// ════ DASHBOARD ════════════════════════════════════════════════════════════
+function renderDash(){
+  const actifs=DOS.filter(d=>!['expire','retire','compromis','offre'].includes(d.statut)).length;
+  const alertes=DOS.filter(d=>getNext(d)).length;
+  const visites=DOS.reduce((s,d)=>(s+(d.visites||[]).length),0);
+  const offres=DOS.filter(d=>d.statut==='offre'||d.statut==='compromis').length;
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stats">
+      <div class="sbox"><div class="sn">${actifs}</div><div class="sl">Actifs</div></div>
+      <div class="sbox"><div class="sn">${alertes}</div><div class="sl">À relancer</div></div>
+      <div class="sbox"><div class="sn">${visites}</div><div class="sl">Visites</div></div>
+      <div class="sbox"><div class="sn">${offres}</div><div class="sl">Offres</div></div>
+    </div>`;
+  const list=document.getElementById('dash-list');
+  if(!DOS.length){list.innerHTML=`<div class="empty">Aucun dossier.<br>Créez votre premier dossier vendeur.</div>`;return;}
+  // Trier : actifs en premier, puis par urgence
+  const sorted=[...DOS].sort((a,b)=>{
+    const pa=['actif','visite','nego'].includes(a.statut)?0:1;
+    const pb=['actif','visite','nego'].includes(b.statut)?0:1;
+    if(pa!==pb)return pa-pb;
+    return jours(b.date)-jours(a.date);
+  });
+  list.innerHTML=sorted.map(d=>{
+    const j=jours(d.date),next=getNext(d);
+    const termine=['expire','retire','compromis','offre'].includes(d.statut);
+    const dotCls=termine?'ok':j>45?'warn':'';
+    const pillCls=termine?'ok':j>45?'warn':'';
+    const pillTxt=d.statut==='offre'?'🎉 Offre':d.statut==='compromis'?'Compromis':d.statut==='expire'?'Expiré':d.statut==='retire'?'Retiré':next?next.jour:'J+84+';
+    const pct=Math.min(100,Math.round((j/84)*100));
+    const pCls=j>45?'warn':j>25?'':'';
+    return`<button class="dcard" onclick="ouvrirFiche('${d.id}')">
+      <div class="dtop">
+        <div class="ddot ${dotCls}"></div>
+        <div class="dinfo">
+          <div class="dname">${d.nom}</div>
+          <div class="dmeta">${d.ville}${d.prix?' · '+d.prix:''}${d.type?' · '+d.type:''} · J+${j}</div>
+        </div>
+        <div class="dpill ${pillCls}">${pillTxt}</div>
+      </div>
+      <div class="pbar"><div class="pfill ${pCls}" style="width:${pct}%"></div></div>
+    </button>`;
+  }).join('');
+}
+
+function jours(dateStr){
+  if(!dateStr)return 0;
+  return Math.floor((Date.now()-new Date(dateStr).getTime())/86400000);
+}
+
+function getNext(d){
+  if(['expire','retire','compromis','offre'].includes(d.statut))return null;
+  const j=jours(d.date);
+  return ETAPES.find(e=>e.jours>(d.lastSent||0)&&e.jours<=j+2);
+}
+
+// ════ SAUVEGARDER ══════════════════════════════════════════════════════════
+function sauvegarder(){
+  const nom=document.getElementById('n-nom').value.trim();
+  const ville=document.getElementById('n-ville').value.trim();
+  const date=document.getElementById('n-date').value;
+  if(!nom||!ville||!date){showToast('Nom, ville et date requis');return;}
+  const d={
+    id:Date.now().toString(),nom,ville,
+    type:document.getElementById('n-type').value.trim(),
+    prix:document.getElementById('n-prix').value.trim(),
+    dpe:document.getElementById('n-dpe').value,
+    email:document.getElementById('n-email').value.trim(),
+    tel:document.getElementById('n-tel').value.trim(),
+    lien:document.getElementById('n-lien').value.trim(),
+    date,vues:document.getElementById('n-vues').value.trim(),
+    prixReco:document.getElementById('n-prixreco').value.trim(),
+    objectif:document.getElementById('n-objectif').value,
+    notes:document.getElementById('n-notes').value.trim(),
+    statut:'actif',lastSent:0,
+    visites:[],prixHist:[],journal:[],
+    createdAt:Date.now()
+  };
+  if(d.prix)d.prixHist.push({val:d.prix,date,note:'Prix initial'});
+  DOS.unshift(d);saveD();
+  ['n-nom','n-ville','n-type','n-prix','n-email','n-tel','n-lien','n-vues','n-prixreco','n-notes'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('n-dpe').value='';document.getElementById('n-objectif').value='';
+  document.getElementById('n-date').value=new Date().toISOString().split('T')[0];
+  CID=d.id;showToast('Dossier enregistré ✓');ouvrirFiche(d.id);
+}
+
+// ════ FICHE ════════════════════════════════════════════════════════════════
+function ouvrirFiche(id){
+  CID=id;const d=DOS.find(x=>x.id===id);if(!d)return;
+  const j=jours(d.date),next=getNext(d);
+  const st=STATUTS.find(s=>s.key===d.statut)||STATUTS[0];
+  // Prix history
+  const pHist=d.prixHist&&d.prixHist.length>1?`
+    <div class="slabel" style="margin-top:0">Historique prix</div>
+    <div class="card">
+      <div class="prix-hist">
+        ${d.prixHist.map((p,i)=>`
+          <div class="ph-item"><div class="ph-val">${p.val}</div><div class="ph-date">${new Date(p.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</div></div>
+          ${i<d.prixHist.length-1?'<div class="ph-arrow">→</div>':''}
+        `).join('')}
+      </div>
+    </div>`:'';
+  // Visites log
+  const vLog=d.visites&&d.visites.length?`
+    <div class="slabel">Journal des visites (${d.visites.length})</div>
+    <div class="card" style="padding:0">
+      <div class="vlog">
+        ${d.visites.map(v=>{
+          const retourCls=v.retour==='prix'?'prix':v.retour==='positif'||v.retour==='offre'?'ok':'';
+          const retourTxt={prix:'Prix',surface:'Surface',travaux:'Travaux',localisation:'Localisation',dpe:'DPE',positif:'Positif',offre:'Offre en prép.',autre:'Autre'}[v.retour]||v.retour;
+          return`<div class="vlog-item">
+            <div class="vdate">${new Date(v.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</div>
+            <div class="vbody">
+              <div class="vacq">${v.acq||'Acquéreur'}</div>
+              <div class="vretour">
+                <span class="vretour-tag ${retourCls}">${retourTxt}</span>
+                ${v.comment?'<br>'+v.comment:''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:
+    `<div class="slabel">Visites</div><div class="card" style="text-align:center;color:var(--muted);font-size:.8rem;padding:16px">Aucune visite enregistrée</div>`;
+
+  // Correspondances acquéreurs
+  const matches=ACQ.filter(a=>{
+    const budgetMatch=!a.budget||!d.prix||(parseFloat(a.budget.replace(/\D/g,''))>=parseFloat(d.prix.replace(/\D/g,''))*0.9);
+    const sectMatch=!a.secteur||a.secteur.toLowerCase().includes(d.ville.toLowerCase())||d.ville.toLowerCase().includes(a.secteur.toLowerCase().split(' ')[0]);
+    return budgetMatch||sectMatch;
+  });
+
+  document.getElementById('fiche-content').innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:11px">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;color:var(--aug)">${d.nom}</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${d.ville}${d.type?' · '+d.type:''}${d.dpe?' · DPE '+d.dpe:''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.95rem;font-weight:600;color:var(--terra)">${d.prix||'—'}</div>
+          <div style="font-size:.68rem;color:var(--muted)">J+${j}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span class="status ${st.cls}">${st.label}</span>
+        <button class="btn btn-sm btn-s" style="width:auto;padding:6px 12px;margin:0" onclick="openStatut('${id}')">Changer</button>
+      </div>
+      ${d.lien?`<a href="${d.lien}" target="_blank" class="lpill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Voir l'annonce</span></a>`:''}
+      ${d.email||d.tel?`<div style="margin-top:9px;display:flex;gap:10px;flex-wrap:wrap">
+        ${d.email?`<a href="mailto:${d.email}" style="font-size:.74rem;color:var(--terra);font-weight:500;text-decoration:none">✉ ${d.email}</a>`:''}
+        ${d.tel?`<a href="tel:${d.tel}" style="font-size:.74rem;color:var(--terra);font-weight:500;text-decoration:none">📞 ${d.tel}</a>`:''}
+      </div>`:''}
+      ${d.objectif?`<div style="margin-top:8px;font-size:.74rem;color:var(--muted)">🎯 Objectif : ${d.objectif}</div>`:''}
+      ${d.notes?`<div style="margin-top:8px;font-size:.76rem;color:var(--muted);line-height:1.6;padding:8px 10px;background:var(--bg);border-radius:7px">${d.notes}</div>`:''}
+    </div>
+
+    ${next?`<div class="card" style="border:1.5px solid var(--terra);background:rgba(196,97,74,.04)">
+      <div style="font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);margin-bottom:5px">Prochaine étape recommandée</div>
+      <div style="font-size:.92rem;font-weight:500">${next.jour} — ${next.label}</div>
+      <div style="font-size:.73rem;color:var(--muted);margin-top:2px;line-height:1.5">${next.intent}</div>
+      <button class="btn btn-p btn-sm" onclick="allerComposer('${id}',${ETAPES.indexOf(next)})" style="margin-top:10px">Composer ce mail →</button>
+    </div>`:''}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px">
+      <button class="btn btn-p btn-sm" onclick="openSheet('sheet-visite')">+ Visite</button>
+      <button class="btn btn-p btn-sm" style="background:var(--warn);border-color:var(--warn)" onclick="openSheet('sheet-prix')">+ Baisse prix</button>
+    </div>
+
+    ${pHist}
+    ${vLog}
+
+    ${matches.length?`
+      <div class="slabel">Acquéreurs potentiels (${matches.length})</div>
+      ${matches.map(a=>`<div class="acq-card">
+        <div class="acq-name">${a.nom} <span class="match-pill">Match</span></div>
+        <div class="acq-crit">${a.budget?'Budget : '+a.budget+' · ':''}${a.surface?a.surface+' · ':''}${a.secteur||''}</div>
+        ${a.tel?`<a href="tel:${a.tel}" style="font-size:.72rem;color:var(--terra);font-weight:500;text-decoration:none;display:block;margin-top:4px">📞 ${a.tel}</a>`:''}
+      </div>`).join('')}`:''}
+
+    <div class="slabel">Toutes les étapes</div>
+    ${ETAPES.map((e,i)=>{
+      const due=new Date(d.date);due.setDate(due.getDate()+e.jours);
+      const sent=(d.lastSent||0)>=e.jours;
+      return`<div class="card" style="margin-bottom:7px;${sent?'opacity:.5':''}">
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="flex:1">
+            <div style="font-size:.86rem;font-weight:500">${e.jour} — ${e.label}</div>
+            <div style="font-size:.7rem;color:var(--muted);margin-top:1px">${due.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
+          </div>
+          ${sent?`<span style="font-size:.68rem;color:var(--ok);font-weight:600">✓</span>`:`<button class="btn btn-p btn-sm" style="width:auto;padding:6px 12px" onclick="allerComposer('${id}',${i})">Composer</button>`}
+        </div>
+      </div>`;
+    }).join('')}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px">
+      <button class="btn btn-p btn-sm" style="background:var(--info);border-color:var(--info)" onclick="genererRapport('${id}')">📄 Rapport PDF</button>
+      <button class="btn btn-p btn-sm" style="background:var(--ok)" onclick="changerStatut('${id}','offre')">🎉 Offre reçue</button>
+    </div>
+    <button class="btn btn-del btn-sm" onclick="supprimerDossier('${id}')" style="margin-top:7px">Supprimer ce dossier</button>
+  `;
+  showScreen('fiche');
+}
+
+// ════ STATUT ════════════════════════════════════════════════════════════════
+function openStatut(id){
+  CID=id;
+  document.getElementById('statut-btns').innerHTML=STATUTS.map(s=>`
+    <button class="btn btn-sm" style="background:var(--surface);border:1.5px solid var(--cr2);color:var(--aug);justify-content:flex-start;gap:10px" onclick="changerStatut('${id}','${s.key}')">
+      <span class="status ${s.cls}" style="pointer-events:none">${s.label}</span>
+    </button>`).join('');
+  openSheet('sheet-statut');
+}
+function changerStatut(id,key){
+  const d=DOS.find(x=>x.id===id);if(!d)return;
+  d.statut=key;saveD();closeSheet('sheet-statut');
+  showToast('Statut mis à jour');ouvrirFiche(id);
+}
+
+// ════ VISITES ════════════════════════════════════════════════════════════════
+function saveVisite(){
+  const d=DOS.find(x=>x.id===CID);if(!d)return;
+  const date=document.getElementById('v-date').value;
+  const acq=document.getElementById('v-acq').value.trim();
+  const retour=document.getElementById('v-retour').value;
+  const comment=document.getElementById('v-comment').value.trim();
+  if(!date){showToast('Date requise');return;}
+  if(!d.visites)d.visites=[];
+  d.visites.unshift({date,acq,retour,comment,id:Date.now().toString()});
+  // Auto-update statut si visite positive
+  if(retour==='offre')d.statut='nego';
+  else if(d.statut==='actif')d.statut='visite';
+  saveD();
+  ['v-date','v-acq','v-comment'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('v-retour').value='';
+  document.getElementById('v-date').value=new Date().toISOString().split('T')[0];
+  closeSheet('sheet-visite');showToast('Visite enregistrée ✓');ouvrirFiche(CID);
+}
+
+// ════ PRIX ════════════════════════════════════════════════════════════════
+function savePrix(){
+  const d=DOS.find(x=>x.id===CID);if(!d)return;
+  const val=document.getElementById('p-nouveau').value.trim();
+  const date=document.getElementById('p-date').value;
+  const note=document.getElementById('p-contexte').value.trim();
+  if(!val||!date){showToast('Prix et date requis');return;}
+  if(!d.prixHist)d.prixHist=[];
+  d.prixHist.push({val,date,note:note||'Révision de prix'});
+  d.prix=val;saveD();
+  ['p-nouveau','p-contexte'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('p-date').value=new Date().toISOString().split('T')[0];
+  closeSheet('sheet-prix');showToast('Baisse de prix enregistrée ✓');ouvrirFiche(CID);
+}
+
+// ════ COMPOSER ════════════════════════════════════════════════════════════
+function allerComposer(id,ei){
+  CID=id;EI=ei||0;const d=DOS.find(x=>x.id===id);if(!d)return;
+  document.getElementById('compose-info').innerHTML=`
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="flex:1"><div style="font-size:.88rem;font-weight:500">${d.nom}</div><div style="font-size:.7rem;color:var(--muted);margin-top:1px">${d.ville}${d.prix?' · '+d.prix:''}</div></div>
+      <div style="font-size:.69rem;color:var(--terra);font-weight:600;background:rgba(196,97,74,.1);padding:4px 9px;border-radius:7px">J+${jours(d.date)}</div>
+    </div>`;
+  document.getElementById('compose-back').onclick=()=>ouvrirFiche(id);
+  document.getElementById('c-vues').value=d.vues||'';
+  document.getElementById('c-jours').value=jours(d.date);
+  document.getElementById('c-reco').value=d.prixReco||'';
+  document.getElementById('c-creneau').value='';
+  const wrap=document.getElementById('compose-chips');wrap.innerHTML='';
+  ETAPES.forEach((e,i)=>{
+    const sent=(d.lastSent||0)>=e.jours;
+    const btn=document.createElement('button');
+    btn.className='chip'+(i===EI?' sel':'')+(sent?' sent':'');
+    btn.innerHTML=`<span class="cday">${e.jour}</span>${e.label}`;
+    btn.onclick=()=>{EI=i;document.querySelectorAll('.chip').forEach((c,j)=>c.classList.toggle('sel',j===i));};
+    wrap.appendChild(btn);
+  });
+  setTimeout(()=>{const s=wrap.querySelector('.sel');if(s)s.scrollIntoView({block:'nearest',inline:'center'});},80);
+  showScreen('compose');
+}
+function goCompose(){if(CID)allerComposer(CID,EI);else showScreen('compose');}
+
+// ════ GÉNERER ════════════════════════════════════════════════════════════
+function generer(){
+  const dos=DOS.find(x=>x.id===CID);
+  const vues=document.getElementById('c-vues').value.trim();
+  const reco=document.getElementById('c-reco').value.trim()||(dos&&dos.prixReco)||'';
+  const creneau=document.getElementById('c-creneau').value.trim();
+  const d={
+    nom:dos?dos.nom:'[Nom]',nc:dos?dos.nom.split(/\s+/).pop():'',
+    ville:dos?dos.ville:'[ville]',prix:dos?dos.prix:'',reco,vues,creneau,
+    jours:dos?jours(dos.date):'',visites:dos?(dos.visites||[]).length:0,
+    email:dos?dos.email:'',tel:dos?dos.tel:''
+  };
+  const e=ETAPES[EI];
+  CM={sujet:e.objet(d),corps:e.corps(d),wa:e.wa(d)};
+  document.getElementById('pv-intent').innerHTML=`<strong>Stratégie J${e.jour} :</strong> ${e.intent}`;
+  document.ge  document.getElementById('pv-subj').innerHTML=`<strong>Objet</strong>${CM.sujet}`;
+  document.getElementById('pv-body').textContent=CM.corps;
+  document.getElementById('pv-wa').textContent=CM.wa;
+  buildCalGrid(dos);
+  switchTab('mail',document.querySelector('.tab'));
+  document.getElementById('preview-back').onclick=()=>allerComposer(CID,EI);
+  showScreen('preview');
+}
+
+// TABS
+function switchTab(n,btn){
+  document.getElementById('tab-mail').style.display=n==='mail'?'block':'none';
+  document.getElementById('tab-wa').style.display=n==='wa'?'block':'none';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ACTIONS
+function copier(type){
+  const text=type==='mail'?'Objet : '+CM.sujet+'\n\n'+CM.corps:CM.wa;
+  const btnId=type==='mail'?'btn-cmail':'btn-cwa';
+  navigator.clipboard.writeText(text).catch(()=>{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);});
+  const btn=document.getElementById(btnId);
+  if(btn){btn.classList.add('ok');setTimeout(()=>btn.classList.remove('ok'),2200);}
+  showToast(type==='mail'?'Mail copié ✓':'Message copié ✓');
+}
+function partager(type){
+  const text=type==='mail'?'Objet : '+CM.sujet+'\n\n'+CM.corps:CM.wa;
+  if(navigator.share)navigator.share({title:"Clic'Immo – Suivi vendeur",text});else copier(type);
+}
+function ouvrirMail(){
+  const d=DOS.find(x=>x.id===CID);
+  const to=d&&d.email?d.email:'';
+  window.location.href='mailto:'+to+'?subject='+encodeURIComponent(CM.sujet)+'&body='+encodeURIComponent(CM.corps);
+  marquerEnvoi();
+}
+function ouvrirWA(){
+  const d=DOS.find(x=>x.id===CID);
+  const tel=d&&d.tel?d.tel.replace(/\s/g,'').replace(/^0/,'+33'):'';
+  window.open(tel?'https://wa.me/'+tel+'?text='+encodeURIComponent(CM.wa):'https://wa.me/?text='+encodeURIComponent(CM.wa),'_blank');
+  marquerEnvoi();
+}
+function marquerEnvoi(){
+  const d=DOS.find(x=>x.id===CID);
+  if(d){d.lastSent=Math.max(d.lastSent||0,ETAPES[EI].jours);saveD();}
+}
+
+// GOOGLE CALENDAR
+function buildCalGrid(dos){
+  const wrap=document.getElementById('pv-cal');if(!wrap||!dos)return;
+  wrap.innerHTML=ETAPES.map((e,i)=>{
+    const key=dos.id+'-'+e.jours,done=!!CALDONE[key];
+    return '<button class="ccal'+(done?' done':'')+'" onclick="addGcal(\''+dos.id+'\','+i+')">'
+      +'<span class="cj">'+e.jour+'</span><span>'+(done?'✓':'📅')+'</span></button>';
+  }).join('');
+}
+function addGcal(did,ei){
+  const d=DOS.find(x=>x.id===did);if(!d)return;
+  const e=ETAPES[ei];
+  const s=new Date(d.date);s.setDate(s.getDate()+e.jours);
+  const fmt=dt=>dt.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const en=new Date(s);en.setHours(en.getHours()+1);
+  const ti=encodeURIComponent('🏠 '+e.jour+' – '+d.nom+' ('+d.ville+')');
+  const de=encodeURIComponent('Étape '+e.jour+' : '+e.label+'\n'+e.intent+'\n\n'+d.nom+' – '+d.ville+(d.prix?' – '+d.prix:'')+(d.lien?'\nAnnonce : '+d.lien:''));
+  window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+ti+'&dates='+fmt(s)+'/'+fmt(en)+'&details='+de,'_blank');
+  CALDONE[did+'-'+e.jours]=true;showToast(e.jour+' ajouté à Google Agenda ✓');
+  buildCalGrid(d);
+}
+
+// RAPPORT
+function genererRapport(id){
+  const d=DOS.find(x=>x.id===id);if(!d)return;
+  const j=jours(d.date);
+  const nbV=(d.visites||[]).length;
+  const retPrix=(d.visites||[]).filter(v=>v.retour==='prix').length;
+  const pHist=(d.prixHist||[]).map(p=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--cr2)"><span>'+p.val+'</span><span style="color:var(--muted);font-size:.78rem">'+new Date(p.date).toLocaleDateString('fr-FR')+' — '+p.note+'</span></div>').join('');
+  const vLog=(d.visites||[]).map(v=>'<div style="padding:6px 0;border-bottom:1px solid var(--cr2)"><div style="font-size:.82rem;font-weight:500">'+(v.acq||'Acquéreur')+' — <span style="font-size:.75rem;color:var(--muted)">'+new Date(v.date).toLocaleDateString('fr-FR')+'</span></div><div style="font-size:.75rem;color:var(--muted);margin-top:2px">Retour : '+(v.retour||'—')+(v.comment?' · '+v.comment:'')+'</div></div>').join('');
+  document.getElementById('rapport-content').innerHTML=
+    '<div style="text-align:center;padding:12px 0 16px;border-bottom:2px solid var(--aug);margin-bottom:16px">'
+    +'<div style="font-family:Cormorant Garamond,serif;font-size:1.4rem;font-weight:600;color:var(--aug)">Rapport de suivi commercial</div>'
+    +'<div style="font-size:.75rem;color:var(--muted);margin-top:3px">Clic'Immo · Allma Grivel · '+new Date().toLocaleDateString('fr-FR')+'</div>'
+    +'</div>'
+    +'<div class="rapport-section"><div class="rapport-h">Identification du bien</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.8rem">'
+    +'<div><span style="color:var(--muted)">Propriétaire</span><br><strong>'+d.nom+'</strong></div>'
+    +'<div><span style="color:var(--muted)">Commune</span><br><strong>'+d.ville+'</strong></div>'
+    +'<div><span style="color:var(--muted)">Type</span><br><strong>'+(d.type||'—')+'</strong></div>'
+    +'<div><span style="color:var(--muted)">DPE</span><br><strong>'+(d.dpe||'—')+'</strong></div>'
+    +'<div><span style="color:var(--muted)">Prix actuel</span><br><strong>'+(d.prix||'—')+'</strong></div>'
+    +'<div><span style="color:var(--muted)">En ligne depuis</span><br><strong>J+'+j+' ('+new Date(d.date).toLocaleDateString('fr-FR')+')</strong></div>'
+    +'</div></div>'
+    +'<div class="rapport-section"><div class="rapport-h">Indicateurs</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'
+    +'<div class="sbox"><div class="sn">'+(d.vues||'—')+'</div><div class="sl">Vues</div></div>'
+    +'<div class="sbox"><div class="sn">'+nbV+'</div><div class="sl">Visites</div></div>'
+    +'<div class="sbox"><div class="sn">'+retPrix+'</div><div class="sl">Retours prix</div></div>'
+    +'</div></div>'
+    +(d.prixHist&&d.prixHist.length?'<div class="rapport-section"><div class="rapport-h">Historique des prix</div>'+pHist+'</div>':'')
+    +(nbV?'<div class="rapport-section"><div class="rapport-h">Journal des visites</div>'+vLog+'</div>':'')
+    +'<div class="rapport-section"><div class="rapport-h">Synthèse & recommandations</div>'
+    +'<div style="font-size:.8rem;line-height:1.75">'
+    +(nbV===0?'Après '+j+' jours, aucune demande de visite. Décalage prix/marché.':''+nbV+' visite(s) sur '+j+' jours.'+(retPrix?' '+retPrix+' mention(s) du prix comme frein.':''))
+    +(d.prixReco?'<br><br>Prix recommandé Clic'Immo : <strong>'+d.prixReco+'</strong>.':'')
+    +(d.objectif?'<br>Objectif vendeur : '+d.objectif:'')
+    +'</div></div>'
+    +'<div style="text-align:center;padding-top:14px;border-top:1px solid var(--cr2);font-size:.72rem;color:var(--muted)">Allma Grivel · Clic'Immo · agrivel@efficity.com</div>';
+  openSheet('sheet-rapport');
+}
+function imprimerRapport(){window.print();}
+
+// ACQUÉREURS
+function renderAcq(){
+  const list=document.getElementById('acq-list');
+  if(!ACQ.length){list.innerHTML='<div class="empty">Aucun acquéreur.<br>Ajoutez vos mandats acquéreurs pour activer la mise en correspondance automatique.</div>';return;}
+  list.innerHTML=ACQ.map((a,i)=>'<div class="acq-card">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between">'
+    +'<div class="acq-name">'+a.nom+'</div>'
+    +'<button style="background:none;border:none;color:var(--terra);font-size:.75rem;cursor:pointer;padding:0" onclick="supprimerAcq('+i+')">✕</button>'
+    +'</div>'
+    +'<div class="acq-crit">'+(a.budget?'💰 '+a.budget+' · ':'')+(a.surface?'📐 '+a.surface+' · ':'')+(a.secteur?'📍 '+a.secteur:'')+(a.type?'<br>🏠 '+a.type:'')+(a.notes?'<br>'+a.notes:'')+'</div>'
+    +(a.tel?'<a href="tel:'+a.tel+'" style="font-size:.72rem;color:var(--terra);font-weight:500;text-decoration:none;display:block;margin-top:5px">📞 '+a.tel+'</a>':'')
+    +(a.email?'<a href="mailto:'+a.email+'" style="font-size:.72rem;color:var(--terra);font-weight:500;text-decoration:none;display:block;margin-top:2px">✉ '+a.email+'</a>':'')
+    +'</div>').join('');
+}
+function saveAcq(){
+  const nom=document.getElementById('a-nom').value.trim();
+  if(!nom){showToast('Nom requis');return;}
+  ACQ.unshift({id:Date.now().toString(),nom,
+    tel:document.getElementById('a-tel').value.trim(),
+    email:document.getElementById('a-email').value.trim(),
+    budget:document.getElementById('a-budget').value.trim(),
+    surface:document.getElementById('a-surface').value.trim(),
+    secteur:document.getElementById('a-secteur').value.trim(),
+    type:document.getElementById('a-type').value.trim(),
+    notes:document.getElementById('a-notes').value.trim()});
+  saveA();
+  ['a-nom','a-tel','a-email','a-budget','a-surface','a-secteur','a-type','a-notes'].forEach(i=>document.getElementById(i).value='');
+  closeSheet('sheet-acq');showToast('Acquéreur enregistré ✓');renderAcq();
+}
+function supprimerAcq(i){ACQ.splice(i,1);saveA();renderAcq();}
+
+// SHEETS
+function openSheet(id){document.getElementById(id).classList.add('open');}
+function closeSheet(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// TOAST
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+function supprimerDossier(id){
+  if(!confirm('Supprimer ce dossier ?'))return;
+  DOS=DOS.filter(d=>d.id!==id);saveD();showScreen('dash');showToast('Dossier supprimé');
+}
+
+// INIT
+document.getElementById('n-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('v-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('p-date').value=new Date().toISOString().split('T')[0];
+renderDash();
+</script>
+</body>
+</html>
