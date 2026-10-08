@@ -249,3 +249,25 @@ with sync_playwright() as p:
             pg.screenshot(path=str(OUT / name)); pg.close()
             print(name, f"{f['w']}x{f['h']}", "DEBORDE %dpx" % over if over > 2 else "ok")
     b.close()
+
+# ── PDF modifiables pour Canva : un PDF par réseau, une page par publication ──
+if len(sys.argv) > 3:
+    from pypdf import PdfWriter
+    PDF = pathlib.Path(sys.argv[3]); PDF.mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as p:
+        b = p.chromium.launch(executable_path="/opt/pw-browsers/chromium-1194/chrome-linux/chrome")
+        for net, f in FORMATS.items():
+            w = PdfWriter(); tmp = []
+            for post in POSTS:
+                if net not in post["nets"]:
+                    continue
+                pg = b.new_page(viewport={"width": f["w"], "height": f["h"]})
+                pg.set_content(page(post, net)); pg.wait_for_timeout(150)
+                t = PDF / f"_tmp_{post['n']:02d}.pdf"
+                pg.pdf(path=str(t), width=f"{f['w']}px", height=f"{f['h']}px", print_background=True,
+                       margin={"top": "0", "right": "0", "bottom": "0", "left": "0"}, page_ranges="1")
+                pg.close(); w.append(str(t)); tmp.append(t)
+            w.write(str(PDF / f"ClicImmo_lancement_{net}.pdf"))
+            for t in tmp: t.unlink()
+            print(net, len(tmp), "pages")
+        b.close()
